@@ -1,0 +1,304 @@
+apiVersion: v1 
+kind: Namespace 
+metadata: 
+   name: ns-mysql-test 
+   labels: 
+     name: ns-mysql-test 
+--- 
+apiVersion: kubeovn.io/v1 
+kind: Subnet 
+metadata: 
+  name: ns-mysql-test 
+spec: 
+  protocol: IPv4 
+  cidrBlock: 10.99.0.0/16 
+  excludeIps: 
+  - 10.99.0.1..10.99.0.10 
+  gateway: 10.99.0.1 
+  namespaces: 
+  - ns-mysql-test 
+  private: false 
+  gatewayType: distributed 
+  natOutgoing: false 
+--- 
+apiVersion: v1 
+kind: Pod 
+metadata: 
+  labels: 
+    app: mysql-1 
+  name: mysql-1 
+  namespace: ns-mysql-test 
+  annotations: 
+    ovn.kubernetes.io/ip_address: 10.99.0.15 
+    ovn.kubernetes.io/mac_address: 00:00:00:53:6B:B6 
+spec: 
+  nodeSelector: 
+    test: "mysql-test-1" 
+  hostAliases: 
+  - ip: "10.99.0.15" 
+    hostnames: 
+    - "mysql-1" 
+  - ip: "10.99.0.16" 
+    hostnames: 
+    - "mysql-2" 
+  - ip: "10.99.0.17" 
+    hostnames: 
+    - "mysql-3" 
+  containers: 
+  - name: mysql-1 
+    image: mymysql/centos8-mysql-arm:8.0.19 
+    resources: 
+      limits: 
+        cpu: 16 
+        memory: 64Gi 
+    ports: 
+    - name: mysql-port 
+      containerPort: 3306 
+    - name: copy-port 
+      containerPort: 33061 
+    env: 
+    - name: MYSQL_ROOT_PASSWORD 
+      value: test123 
+    - name: MYSQL_ROOT_HOST 
+      value: "%" 
+    volumeMounts: 
+    - name: mysql-data 
+      mountPath: "/data/mysql/data" 
+    - name: mysql-log 
+      mountPath: "/data/mysql/log" 
+    - name: mysql-run 
+      mountPath: "/data/mysql/run" 
+    - name: mysql-tmp 
+      mountPath: "/data/mysql/tmp" 
+    - name: mysql-cnf 
+      mountPath: "/etc/my.cnf" 
+  volumes: 
+  - name: mysql-data 
+    hostPath: 
+      path: "/data/mysql/mysql_1/data" 
+      type: DirectoryOrCreate 
+  - name: mysql-log 
+    hostPath: 
+      path: "/data/mysql/mysql_1/log" 
+      type: DirectoryOrCreate 
+  - name: mysql-run 
+    hostPath: 
+      path: "/data/mysql/mysql_1/run" 
+      type: DirectoryOrCreate 
+  - name: mysql-tmp 
+    hostPath: 
+      path: "/data/mysql/mysql_1/tmp" 
+      type: DirectoryOrCreate 
+  - name: mysql-cnf 
+    hostPath: 
+      path: "/data/mysql/mysql_1/mysql_arm.cnf" 
+      type: FileOrCreate 
+--- 
+apiVersion: v1 
+kind: Pod 
+metadata: 
+  labels: 
+    app: mysql-2 
+  name: mysql-2 
+  namespace: ns-mysql-test 
+  annotations: 
+    ovn.kubernetes.io/ip_address: 10.99.0.16 
+    ovn.kubernetes.io/mac_address: 00:00:00:53:6B:B7 
+spec: 
+  nodeSelector: 
+    test: "mysql-test-2" 
+  hostAliases: 
+  - ip: "10.99.0.15" 
+    hostnames: 
+    - "mysql-1" 
+  - ip: "10.99.0.16" 
+    hostnames: 
+    - "mysql-2" 
+  - ip: "10.99.0.17" 
+    hostnames: 
+    - "mysql-3" 
+  containers: 
+  - name: mysql-2 
+    image: mymysql/centos8-mysql-arm:8.0.19 
+    resources: 
+      limits: 
+        cpu: 16 
+        memory: 64Gi 
+    ports: 
+    - name: mysql-port 
+      containerPort: 3306 
+    - name: copy-port 
+      containerPort: 33061 
+    env: 
+    - name: MYSQL_ROOT_PASSWORD 
+      value: test123 
+    - name: MYSQL_ROOT_HOST 
+      value: "%" 
+    volumeMounts: 
+    - name: mysql-data 
+      mountPath: "/data/mysql/data" 
+    - name: mysql-log 
+      mountPath: "/data/mysql/log" 
+    - name: mysql-run 
+      mountPath: "/data/mysql/run" 
+    - name: mysql-tmp 
+      mountPath: "/data/mysql/tmp" 
+    - name: mysql-cnf 
+      mountPath: "/etc/my.cnf" 
+  volumes: 
+  - name: mysql-data 
+    hostPath: 
+      path: "/data/mysql/mysql_2/data" 
+      type: DirectoryOrCreate 
+  - name: mysql-log 
+    hostPath: 
+      path: "/data/mysql/mysql_2/log" 
+      type: DirectoryOrCreate 
+  - name: mysql-run 
+    hostPath: 
+      path: "/data/mysql/mysql_2/run" 
+      type: DirectoryOrCreate 
+  - name: mysql-tmp 
+    hostPath: 
+      path: "/data/mysql/mysql_2/tmp" 
+      type: DirectoryOrCreate 
+  - name: mysql-cnf 
+    hostPath: 
+      path: "/data/mysql/mysql_2/mysql_arm.cnf" 
+      type: FileOrCreate 
+--- 
+apiVersion: v1 
+kind: Pod 
+metadata: 
+  labels: 
+    app: mysql-3 
+  name: mysql-3 
+  namespace: ns-mysql-test 
+  annotations: 
+    ovn.kubernetes.io/ip_address: 10.99.0.17 
+    ovn.kubernetes.io/mac_address: 00:00:00:53:6B:B8 
+spec: 
+  nodeSelector: 
+    test: "mysql-test-3" 
+  hostAliases: 
+  - ip: "10.99.0.15" 
+    hostnames: 
+    - "mysql-1" 
+  - ip: "10.99.0.16" 
+    hostnames: 
+    - "mysql-2" 
+  - ip: "10.99.0.17" 
+    hostnames: 
+    - "mysql-3" 
+  containers: 
+  - name: mysql-3 
+    image: mymysql/centos8-mysql-arm:8.0.19 
+    resources: 
+      limits: 
+        cpu: 16 
+        memory: 64Gi 
+    ports: 
+    - name: mysql-port 
+      containerPort: 3306 
+    - name: copy-port 
+      containerPort: 33061 
+    env: 
+    - name: MYSQL_ROOT_PASSWORD 
+      value: test123 
+    - name: MYSQL_ROOT_HOST 
+      value: "%" 
+    volumeMounts: 
+    - name: mysql-data 
+      mountPath: "/data/mysql/data" 
+    - name: mysql-log 
+      mountPath: "/data/mysql/log" 
+    - name: mysql-run 
+      mountPath: "/data/mysql/run" 
+    - name: mysql-tmp 
+      mountPath: "/data/mysql/tmp" 
+    - name: mysql-cnf 
+      mountPath: "/etc/my.cnf" 
+  volumes: 
+  - name: mysql-data 
+    hostPath: 
+      path: "/data/mysql/mysql_3/data" 
+      type: DirectoryOrCreate 
+  - name: mysql-log 
+    hostPath: 
+      path: "/data/mysql/mysql_3/log" 
+      type: DirectoryOrCreate 
+  - name: mysql-run 
+    hostPath: 
+      path: "/data/mysql/mysql_3/run" 
+      type: DirectoryOrCreate 
+  - name: mysql-tmp 
+    hostPath: 
+      path: "/data/mysql/mysql_3/tmp" 
+      type: DirectoryOrCreate 
+  - name: mysql-cnf 
+    hostPath: 
+      path: "/data/mysql/mysql_3/mysql_arm.cnf" 
+      type: FileOrCreate 
+--- 
+apiVersion: v1 
+kind: Service 
+metadata:  
+  name: mysql-1-service 
+  namespace: ns-mysql-test 
+spec: 
+  type: NodePort 
+  selector: 
+    app: mysql-1 
+  ports: 
+    - name: dbport 
+      protocol: TCP 
+      port: 3306 
+      targetPort: 3306 
+      nodePort: 30001 
+    - name: cpport 
+      protocol: TCP 
+      port: 33061 
+      targetPort: 33061 
+      nodePort: 30061 
+--- 
+apiVersion: v1 
+kind: Service 
+metadata:  
+  name: mysql-2-service 
+  namespace: ns-mysql-test 
+spec: 
+  type: NodePort 
+  selector: 
+    app: mysql-2 
+  ports: 
+    - name: dbport 
+      protocol: TCP 
+      port: 3306 
+      targetPort: 3306 
+      nodePort: 30002 
+    - name: cpport 
+      protocol: TCP 
+      port: 33061 
+      targetPort: 33061 
+      nodePort: 30062 
+--- 
+apiVersion: v1 
+kind: Service 
+metadata:  
+  name: mysql-3-service 
+  namespace: ns-mysql-test 
+spec: 
+  type: NodePort 
+  selector: 
+    app: mysql-3 
+  ports: 
+    - name: dbport 
+      protocol: TCP 
+      port: 3306 
+      targetPort: 3306 
+      nodePort: 30003 
+    - name: cpport 
+      protocol: TCP 
+      port: 33061 
+      targetPort: 33061 
+      nodePort: 30063
